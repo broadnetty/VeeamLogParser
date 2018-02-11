@@ -4,18 +4,39 @@ JobPath = 'Svc.VeeamBackup.log'
 #JobPath = 'logs/2017-01-16T120006_Job.LBS_RI-Backup.Backup.1.log'
 
 class LogMessage:
-    def __init__(self, date, time, pid, level, words, id):
+    def __init__(self, date, time, pid, level, words): # , id):
         self.date = date
         self.time = time
         self.pid = pid
         self.level = level
-        self.id = id
+        #self.id = id
         # remove empty words ('')
         self.words = []
         for word in words:
             if word != '':
                 self.words.append(word.strip('\r\n'))
         return
+
+class Job:
+    def __init__(self,lines):
+        self.Lines = self.parse_lines(lines)
+
+    def parse_lines(self, lines):
+        logLines = []
+        id = 0
+        for line in lines:
+            id += 1
+            if line[0] == '[':
+                text = line.split(' ')
+                logLines.append(
+                    LogMessage(text[0].strip('[]'),  # date
+                               text[1].strip('[]'),  # time
+                               text[2].strip('<>'),  # pid
+                               text[3],  # type
+                               text[4:]
+                               )  # words
+                )
+        return logLines
 
 
 class BackupJob:
